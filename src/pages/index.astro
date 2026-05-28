@@ -1,8 +1,50 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import StrategyCard from '../components/StrategyCard.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <BaseLayout title="首页">
-  <h1 class="text-3xl mb-4">Options Catalogue</h1>
-  <p class="text-zinc-400">Coming soon — homepage cards built in Task 10.</p>
+  <section class="mb-10">
+    <h1 class="text-4xl font-bold mb-3">期权策略图鉴</h1>
+    <p class="text-zinc-400 max-w-2xl">
+      从最常用的三个策略开始：现金担保看跌（CSP）、牛市看跌价差（BPS）、
+      备兑看涨（CC）。每张卡片对比方向、风险、资金需求与适用场景，点进去看
+      完整机制、损益图、极端场景表与真实案例。
+    </p>
+  </section>
+
+  <section class="grid md:grid-cols-3 gap-5">
+    <StrategyCard
+      href={`${base}/csp`}
+      shortName="CSP"
+      fullName="Cash-Secured Put · 现金担保看跌"
+      direction="看涨"
+      riskCapped={false}
+      capital="现金 K × 100"
+      bestFor="中性偏涨、愿意以 K 价接货、IV 中等偏高"
+    />
+    <StrategyCard
+      href={`${base}/bps`}
+      shortName="BPS"
+      fullName="Bull Put Spread · 牛市看跌价差"
+      direction="看涨"
+      riskCapped={true}
+      capital="保证金 = (K_short − K_long) × 100 − credit"
+      bestFor="看涨但想锁定下行风险、资金有限、不想接货"
+    />
+    <StrategyCard
+      href={`${base}/cc`}
+      shortName="CC"
+      fullName="Covered Call · 备兑看涨"
+      direction="中性"
+      riskCapped={false}
+      capital="已有 100 股标的"
+      bestFor="持股横盘、想榨取 income、不介意被 call away"
+    />
+  </section>
+
+  <section class="mt-12 text-xs text-zinc-500">
+    <p>更多策略（Iron Condor / Wheel / Calendar 等）将在第二期加入。</p>
+  </section>
 </BaseLayout>
