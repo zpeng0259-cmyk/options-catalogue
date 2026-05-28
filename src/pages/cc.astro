@@ -1,0 +1,118 @@
+---
+import StrategyLayout from '../layouts/StrategyLayout.astro';
+import ProsConsList from '../components/ProsConsList.astro';
+import ScenarioTable from '../components/ScenarioTable.astro';
+import PayoffSVG from '../components/PayoffSVG.astro';
+import ExampleCard from '../components/ExampleCard.astro';
+
+// Scenario math (CC): cost basis C=100, sold call @ K=105, premium P=1.8
+const C = 100;
+const K = 105;
+const P = 1.8;
+function stock(S: number) { return +(S - C).toFixed(2); }
+function call(S: number) { return +(P - Math.max(S - K, 0)).toFixed(2); }
+function net(S: number) { return +(stock(S) + call(S)).toFixed(2); }
+function roc(pnl: number) { return +(pnl / C * 100).toFixed(2); }
+
+const ccRows = [
+  [`股价 -20% (${(C*0.8).toFixed(0)})`, stock(C*0.8), call(C*0.8), net(C*0.8), roc(net(C*0.8))],
+  [`股价 -10% (${(C*0.9).toFixed(0)})`, stock(C*0.9), call(C*0.9), net(C*0.9), roc(net(C*0.9))],
+  [`= C (${C})`, stock(C), call(C), net(C), roc(net(C))],
+  [`= K (${K})`, stock(K), call(K), net(K), roc(net(K))],
+  [`股价 +10% (${(C*1.1).toFixed(0)})`, stock(C*1.1), call(C*1.1), net(C*1.1), roc(net(C*1.1))],
+  [`股价 +20% (${(C*1.2).toFixed(0)})`, stock(C*1.2), call(C*1.2), net(C*1.2), roc(net(C*1.2))],
+];
+
+const ivCrush = [
+  ['开仓后立刻 IV −30%（股价不变）', '+0.85', '+47%'],
+  ['Theta 1 天衰减（IV 不变）', '+0.06', '+3%'],
+  ['IV −30% + 时间 −5 DTE', '+1.15', '+64%'],
+];
+---
+
+<StrategyLayout
+  title="CC"
+  shortName="CC"
+  fullName="Covered Call · 备兑看涨期权"
+  oneLiner="已经持有 100 股某只股票，卖一张看涨期权吃 premium，代价是上涨被锁死在 strike。"
+>
+
+<h2>1. 机制 (How it works)</h2>
+
+<ul>
+  <li><strong>前提：</strong>已经持有 100 股标的（per contract）</li>
+  <li><strong>你做什么：</strong>Sell to Open 1 张 call @ strike K（通常 OTM，delta 0.20–0.40）</li>
+  <li><strong>担保物：</strong>已有的 100 股就是 collateral（不需要额外现金）</li>
+  <li><strong>到期路径：</strong>
+    <ul>
+      <li>股价 &lt; K → call worthless，premium 入袋，股票继续持有</li>
+      <li>股价 &gt; K → 股票被 called away，按 K 卖出（盈利 = K − cost + premium）</li>
+    </ul>
+  </li>
+  <li><strong>关键 Greeks：</strong>正 Theta、负 Delta（call 的负 delta + 股票正 delta = 净 delta &lt; 100）、负 Vega</li>
+  <li><strong>本质：</strong>用 unlimited upside 换 limited income — 持仓变成了 capped-upside 头寸</li>
+</ul>
+
+<h2>2. 适用场景 ✓ / 不适用场景 ✗</h2>
+
+<ProsConsList
+  pros={[
+    "持股横盘或缓涨预期（不指望大涨）",
+    "想榨取持仓的 income 增强收益",
+    "Cost basis 远低于当前股价（被 called away 也大赚）",
+    "心态成熟，不会因为踏空大涨而懊悔",
+    "标的 IV 中等偏高（call premium 才值得卖）",
+  ]}
+  cons={[
+    "预期大涨（CC 上限封顶，下场看着股价飞走最难受）",
+    "Cost basis 接近当前股价（被 called away 利润微薄）",
+    "标的将出财报 / 重大利好（IV 高但被 called away 概率激增）",
+    "持仓数量 < 100 股（无法做 CC，可考虑 covered call ETF）",
+    "把 CC 当下跌保护（CC 几乎不保护下跌，只是 premium 那点缓冲）",
+  ]}
+/>
+
+<h2>3. 损益图</h2>
+
+<PayoffSVG strategy="cc" caption="示意参数：cost C=100, sold call @ K=105, premium=1.8。Max profit +6.80（股价≥105）；breakeven 98.20；下方 P&L 几乎随股价线性下跌。" />
+
+<h2>4. 极端场景 P&L 表（分腿）</h2>
+
+<p>假设 cost basis=100, sold call @ K=105, premium=1.8（per share）。ROC 基数 = cost basis（资金占用 = 持股市值）。</p>
+
+<ScenarioTable
+  caption="到期 P&L"
+  columns={['股价场景', '股票 P&L', 'Call P&L', '净 P&L', 'ROC%']}
+  rows={ccRows as any}
+  highlightNegativeCol={3}
+/>
+
+<ScenarioTable
+  caption="IV crush / Theta 场景（mark-to-market，股价不变）"
+  columns={['场景', 'P&L 估算', '占 max profit %']}
+  rows={ivCrush}
+/>
+
+<h2>5. 真实例子（部分脱敏）</h2>
+
+<ExampleCard
+  ticker="MSFT"
+  date="2025-04"
+  setup="Cost basis ~370, sold 420C 35DTE @ premium 2.10, delta 0.25"
+  background="MSFT 在 405 横盘 2 个月，IV 25 偏低但 monthly income 思路。"
+  decision="420 在历史阻力位上方；35DTE 平衡 theta 与 assignment risk；delta 0.25 = 75% 概率不被 called away。"
+  outcome="持到 14DTE 股价拉到 418，call mark-to-market +0.40 (留 80% credit)，Buy to Close 锁利后再开下个周期。"
+  takeaway="CC 用 21/45 rule（21DTE 关、45DTE 开）是常见 framework；也可设 50% premium-decay 阈值。"
+/>
+
+<h2>6. 常见误区</h2>
+
+<ul>
+  <li><strong>Strike 设得离当前价太近（high premium 诱惑）：</strong>高 delta = 高 called away 概率，吃了 premium 但错过上涨。</li>
+  <li><strong>低 cost basis 的股票卖深度 ITM call：</strong>等于自愿低价卖出 — 除非你本来就想退出。</li>
+  <li><strong>财报前卖 CC 享 IV crush：</strong>IV crush 没错，但财报 gap up 经常打穿任何 OTM strike。</li>
+  <li><strong>把 CC 视作下跌保护：</strong>premium 1-3% 只是杯水车薪，股票真跌 20% 还是亏 17%+。</li>
+  <li><strong>被 called away 后立刻同价买回：</strong>commission + tax 损耗。要么接受退出，要么 strike 留更高 buffer。</li>
+</ul>
+
+</StrategyLayout>
