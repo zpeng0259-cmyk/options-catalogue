@@ -1,0 +1,52 @@
+---
+interface Props {
+  caption?: string;
+  columns: string[];
+  rows: (string | number)[][];
+  highlightNegativeCol?: number;
+  highlightPositiveCol?: number;
+}
+const { caption, columns, rows, highlightNegativeCol, highlightPositiveCol } = Astro.props;
+
+function cellClass(value: string | number, colIdx: number): string {
+  const isNumeric = typeof value === 'number';
+  const isNeg = isNumeric && (value as number) < 0;
+  const isPos = isNumeric && (value as number) > 0;
+  if (colIdx === highlightNegativeCol && isNeg) return 'text-red-400';
+  if (colIdx === highlightPositiveCol && isPos) return 'text-emerald-400';
+  if (colIdx === highlightNegativeCol && isPos) return 'text-emerald-400';
+  if (colIdx === highlightPositiveCol && isNeg) return 'text-red-400';
+  return '';
+}
+
+function format(value: string | number): string {
+  if (typeof value === 'number') {
+    return value.toFixed(2);
+  }
+  return value;
+}
+---
+
+<div class="my-6 not-prose overflow-x-auto">
+  {caption && <p class="text-sm text-zinc-400 mb-2">{caption}</p>}
+  <table class="w-full text-sm border-collapse">
+    <thead>
+      <tr class="border-b border-zinc-700">
+        {columns.map((c) => (
+          <th class="text-left py-2 px-3 font-semibold text-zinc-300">{c}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr class="border-b border-zinc-800 hover:bg-zinc-800/40">
+          {row.map((cell, colIdx) => (
+            <td class:list={['py-2 px-3 tabular-nums', cellClass(cell, colIdx)]}>
+              {format(cell)}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
