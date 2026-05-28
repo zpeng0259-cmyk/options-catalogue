@@ -91,8 +91,8 @@ def gen_csp():
 # Bull Put Spread: sold put @ K_short (high), bought put @ K_long (low)
 def gen_bps():
     K_short = 100.0
-    K_long = 95.0
-    credit = 1.5  # net premium received per share
+    K_long = 85.0
+    credit = 2.5  # net premium received per share
     width = K_short - K_long
     max_loss = -(width - credit)
     x = np.linspace(K_long * 0.85, K_short * 1.20, 400)

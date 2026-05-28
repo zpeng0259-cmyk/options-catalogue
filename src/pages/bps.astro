@@ -5,10 +5,11 @@ import ScenarioTable from '../components/ScenarioTable.astro';
 import PayoffSVG from '../components/PayoffSVG.astro';
 import ExampleCard from '../components/ExampleCard.astro';
 
-// Scenario math (BPS): sell put @ K_short=100, buy put @ K_long=95, net credit=1.5
+// Scenario math (BPS): sell put @ K_short=100, buy put @ K_long=85, net credit=2.5
+// Width=15 demo: shows how wider spreads scale up both max profit and max loss.
 const Ks = 100;
-const Kl = 95;
-const credit = 1.5;
+const Kl = 85;
+const credit = 2.5;
 const width = Ks - Kl;
 
 function shortLeg(S: number) {
@@ -35,9 +36,9 @@ const bpsRows = [
 ];
 
 const ivCrush = [
-  ['开仓后立刻 IV −30%（股价不变）', '+0.50', '+33%'],
-  ['Theta 1 天衰减（IV 不变）', '+0.05', '+3%'],
-  ['IV −30% + 时间 −5 DTE', '+0.78', '+52%'],
+  ['开仓后立刻 IV −30%（股价不变）', '+0.80', '+32%'],
+  ['Theta 1 天衰减（IV 不变）', '+0.08', '+3%'],
+  ['IV −30% + 时间 −5 DTE', '+1.25', '+50%'],
 ];
 ---
 
@@ -85,11 +86,11 @@ const ivCrush = [
 
 <h2>3. 损益图</h2>
 
-<PayoffSVG strategy="bps" caption="示意参数：K_short=100, K_long=95, net credit=1.5。Max profit +1.50（股价≥100）；max loss -3.50（股价≤95）；breakeven 98.50。" />
+<PayoffSVG strategy="bps" caption="示意参数：K_short=100, K_long=85, net credit=2.5（width=15 demo）。Max profit +2.50（股价≥100）；max loss -12.50（股价≤85）；breakeven 97.50。" />
 
 <h2>4. 极端场景 P&L 表（分腿）</h2>
 
-<p>假设 K_short=100, K_long=95, credit=1.5（per share）。ROC 基数 = max loss exposure = (width − credit) = 3.5。</p>
+<p>假设 K_short=100, K_long=85, credit=2.5（per share，width=15 宽 spread demo）。ROC 基数 = max loss exposure = (width − credit) = 12.5。注意 max loss 是 width=5 版本（-3.5）的 3.6 倍，但 ROC% 最高只到 20% 而不是 ~43% — 宽 spread 是杠杆，不是收益放大器。</p>
 
 <ScenarioTable
   caption="到期 P&L — 注意 short / long leg 如何在 K_long 以下互相抵消"
