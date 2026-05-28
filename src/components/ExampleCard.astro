@@ -1,0 +1,30 @@
+---
+interface Props {
+  ticker: string;
+  date?: string;
+  setup: string;
+  background: string;
+  decision: string;
+  outcome: string;
+  takeaway: string;
+}
+const { ticker, date, setup, background, decision, outcome, takeaway } = Astro.props;
+---
+
+<div class="my-6 not-prose rounded-lg border border-zinc-700 bg-zinc-800/40 p-5">
+  <header class="flex items-baseline gap-3 mb-3">
+    <span class="text-lg font-bold text-amber-300">{ticker}</span>
+    {date && <span class="text-xs text-zinc-500">{date}</span>}
+    <span class="text-sm text-zinc-300">{setup}</span>
+  </header>
+  <dl class="grid sm:grid-cols-[7rem_1fr] gap-x-4 gap-y-2 text-sm">
+    <dt class="text-zinc-500">背景</dt>
+    <dd class="text-zinc-200">{background}</dd>
+    <dt class="text-zinc-500">决策依据</dt>
+    <dd class="text-zinc-200">{decision}</dd>
+    <dt class="text-zinc-500">结果</dt>
+    <dd class="text-zinc-200">{outcome}</dd>
+    <dt class="text-zinc-500">复盘</dt>
+    <dd class="text-amber-200 italic">{takeaway}</dd>
+  </dl>
+</div>
