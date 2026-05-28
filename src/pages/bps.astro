@@ -140,11 +140,12 @@ const ivCrush = [
 
 <h3>B. K_long &lt; 股价 &lt; K_short（如 92）— 只有 short ITM 🚨 危险</h3>
 <ul>
-  <li>short put 被 assign → 买入 100 股 @ 100（需 $10,000 现金）</li>
+  <li>short put 被 assign → 你以 $100/股 买入 100 股，结算需付 <strong>$10,000</strong>（不是凭空欠的钱，是买股票的价款）</li>
+  <li>BPS 开仓时只放了 $1,250 保证金 — 缺口 <strong>$8,750 由券商 margin loan 自动垫付</strong>（买股票的现金不够，券商借给你，按 margin 利率每日计息）</li>
   <li>long put OTM 归零 — <strong>完全没有保护</strong></li>
-  <li>周一开盘账户：+100 股股票 + 欠 $10,000</li>
-  <li>现金不够 → margin call，券商有权强制平仓任何头寸</li>
-  <li>周一 gap down 损失由你独自承担，可能远超 max loss</li>
+  <li><strong>瞬时实现亏损 ≠ $10,000：</strong>付了 $10k 同时收到 100 股市值 ≈ $9,200，加上 credit $250 → 实现亏损 ≈ <strong>−$550</strong>（与到期前 net P&L 一致）。真正的危险不在 assignment 当下，在接下来。</li>
+  <li>账户头寸瞬间变质：从"max loss 锁死 −$1,250 的 spread" → "<strong>裸 long 100 股 + margin debit $8,750</strong>"，理论亏损上限被打开（股价跌到 0 你倒欠 $8,750 + 利息）</li>
+  <li>Maintenance margin 要求 ~25–30% 股票市值（这里 $2,300–$2,760）— 你的 equity 远不够 → <strong>立刻 margin call</strong>，券商有权强制平仓你账户里任何头寸（不只这只股票），无需你同意</li>
 </ul>
 
 <h3>C. 周五 pin risk</h3>
