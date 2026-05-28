@@ -104,7 +104,7 @@ def gen_bps():
     annotate(ax, K_short, credit, f"K_short=${K_short:.0f}\nMax profit +${credit:.2f}")
     annotate(ax, K_long, max_loss, f"K_long=${K_long:.0f}\nMax loss ${max_loss:.2f}", dy=-22)
     annotate(ax, K_short - credit, 0, f"Breakeven\n${K_short - credit:.2f}", dy=10)
-    style(ax, "BPS — Bull Put Spread 损益图（到期）")
+    style(ax, "BPS — Bull Put Spread Payoff (at expiry)")
     save(fig, "bps")
 
 
@@ -125,7 +125,7 @@ def gen_cc():
     annotate(ax, K, (K - C) + P, f"Strike K=${K:.0f}\nMax profit +${(K - C) + P:.2f}")
     annotate(ax, C - P, 0, f"Breakeven\n${C - P:.2f}", dy=-22)
     annotate(ax, C * 0.7, (C * 0.7 - C) + P, f"Stock falls →\nlimited downside protection\n(only premium P)", dy=10)
-    style(ax, "CC — Covered Call 损益图（到期）")
+    style(ax, "CC — Covered Call Payoff (at expiry)")
     save(fig, "cc")
 
 
