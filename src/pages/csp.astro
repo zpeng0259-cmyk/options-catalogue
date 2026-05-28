@@ -1,0 +1,113 @@
+---
+import StrategyLayout from '../layouts/StrategyLayout.astro';
+import ProsConsList from '../components/ProsConsList.astro';
+import ScenarioTable from '../components/ScenarioTable.astro';
+import PayoffSVG from '../components/PayoffSVG.astro';
+import ExampleCard from '../components/ExampleCard.astro';
+
+// Scenario math (CSP): sold put @ K=100, premium P=2.5
+const K = 100;
+const P = 2.5;
+function csp(S: number) {
+  return +(P - Math.max(K - S, 0)).toFixed(2);
+}
+function roc(pnl: number) {
+  return +(pnl / K * 100).toFixed(2);
+}
+const scenarios = [
+  [`股价 -20% (${(K*0.8).toFixed(0)})`, csp(K*0.8), csp(K*0.8), roc(csp(K*0.8))],
+  [`股价 -10% (${(K*0.9).toFixed(0)})`, csp(K*0.9), csp(K*0.9), roc(csp(K*0.9))],
+  [`= K (${K})`, csp(K), csp(K), roc(csp(K))],
+  [`股价 +10% (${(K*1.1).toFixed(0)})`, csp(K*1.1), csp(K*1.1), roc(csp(K*1.1))],
+  [`股价 +20% (${(K*1.2).toFixed(0)})`, csp(K*1.2), csp(K*1.2), roc(csp(K*1.2))],
+];
+
+const ivCrush = [
+  ['开仓后立刻 IV −30%（股价不变）', '+1.20', '+48%'],
+  ['Theta 1 天衰减（IV 不变）', '+0.08', '+3%'],
+  ['IV −30% + 时间 −5 DTE', '+1.55', '+62%'],
+];
+---
+
+<StrategyLayout
+  title="CSP"
+  shortName="CSP"
+  fullName="Cash-Secured Put · 现金担保看跌期权"
+  oneLiner="愿意以低于当前的价格 K 接货某只股票，在等待期间收取 premium 当 income。"
+>
+
+<h2>1. 机制 (How it works)</h2>
+
+<ul>
+  <li><strong>你做什么：</strong>Sell to Open 1 张 put @ strike K（通常 OTM，delta 0.15–0.30）</li>
+  <li><strong>担保物：</strong>账户冻结 K × 100 现金（per contract）</li>
+  <li><strong>到期路径：</strong>
+    <ul>
+      <li>股价 &gt; K → put expires worthless，premium 全部入袋</li>
+      <li>股价 &lt; K → 被 assign，按 K 接 100 股，成本基础 = K − premium</li>
+    </ul>
+  </li>
+  <li><strong>关键 Greeks：</strong>正 Theta（时间帮你赚）、正 Delta（涨利好你）、负 Vega（IV 跌帮你赚）</li>
+</ul>
+
+<h2>2. 适用场景 ✓ / 不适用场景 ✗</h2>
+
+<ProsConsList
+  pros={[
+    "中性偏看涨，愿意持有底仓股票",
+    "IV 中等偏高（卖 premium 才划算）",
+    "标的基本面认可，跌下来也接得住",
+    "账户现金充裕，K × 100 不影响其他配置",
+  ]}
+  cons={[
+    "强烈看涨（直接买 call 或买股票更好）",
+    "不愿意接货（被 assign 会被迫持仓）",
+    "标的将出财报 / 重大事件前（IV crush 自带 P&L 但 directional risk 也大）",
+    "IV 低位（premium 太薄，ROC 不够补偿风险）",
+    "现金不够覆盖 assignment（看似 ROC 高，实则是 naked put，风险无上限）",
+  ]}
+/>
+
+<h2>3. 损益图</h2>
+
+<PayoffSVG strategy="csp" caption="示意参数：sold put @ K=100, premium=2.5。Max profit +2.50；breakeven 97.50；下方 P&L 线性下降无下限直至股价归 0。" />
+
+<h2>4. 极端场景 P&L 表</h2>
+
+<p>假设 sold put @ K=100, premium=2.5。下表均按 per share 计算（合约乘以 100）。</p>
+
+<ScenarioTable
+  caption="到期 P&L"
+  columns={['股价场景', 'Put P&L', '净 P&L', 'ROC%']}
+  rows={scenarios as any}
+  highlightNegativeCol={2}
+/>
+
+<ScenarioTable
+  caption="IV crush / Theta 场景（mark-to-market，股价不变）"
+  columns={['场景', 'P&L 估算', '占 max profit %']}
+  rows={ivCrush}
+/>
+
+<h2>5. 真实例子（部分脱敏）</h2>
+
+<ExampleCard
+  ticker="PLTR"
+  date="2025-03"
+  setup="Sold 26P 30DTE @ premium 0.85, delta 0.22"
+  background="PLTR 自 32 回落到 28.5，IVR 60。基本面长期看好，愿意 26 接货。"
+  decision="选 26 是上一个支撑位；30DTE 控制 gamma；delta 0.22 = 78% 概率 OTM 到期。"
+  outcome="持到 7DTE 时股价回到 30，put 跌到 0.15，Buy to Close 锁住 82% premium。"
+  takeaway="不必每次拿到 expiry — 80%+ profit target 是 CSP 标准退出节奏。"
+/>
+
+<h2>6. 常见误区</h2>
+
+<ul>
+  <li><strong>只看 ROC% 不看 delta：</strong>ROC 8%/月看着诱人，可能 delta 0.45（接货概率 45%）。</li>
+  <li><strong>把 CSP 当"零风险 income"：</strong>2020/03 SPY 30% 暴跌，CSP 卖家全员被深度 ITM assign。</li>
+  <li><strong>用 margin 当现金担保：</strong>broker 允许，但本质上变成 naked put。账户必须真有 K × 100。</li>
+  <li><strong>财报前卖 CSP 享 high IV：</strong>directional risk 远超 IV crush 收益，新手别碰。</li>
+</ul>
+
+</StrategyLayout>
