@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About">
+  <article class="prose prose-lg prose-invert max-w-none">
+    <h1>About</h1>
+
+    <p>
+      这是一份个人的期权策略教学/复习手册。第一期覆盖 CSP / BPS / CC 三个最常用策略。
+      未来按需扩展到 Iron Condor / Wheel / Calendar 等。
+    </p>
+
+    <h2>设计原则</h2>
+
+    <ul>
+      <li><strong>统一模板：</strong>每个策略 6 节（机制 / 适用 vs 不适用 / 损益图 / 极端场景 / 真实案例 / 常见误区），便于横向对比。</li>
+      <li><strong>分腿场景表：</strong>spread 策略（BPS）单独列出 short / long leg 的 P&L，让读者看到结构如何 cap loss。</li>
+      <li><strong>真实案例脱敏：</strong>保留 ticker / strike / premium / DTE 的绝对数字，隐藏账户、合约数、USD 总额。</li>
+      <li><strong>免责：</strong>仅供教学/复习用，不构成投资建议。期权可能损失全部本金，请独立判断。</li>
+    </ul>
+
+    <h2>技术栈</h2>
+
+    <ul>
+      <li>Astro 4.x + MDX + Tailwind CSS</li>
+      <li>静态 SVG 损益图（Python matplotlib 一次性生成）</li>
+      <li>GitHub Pages + GitHub Actions 自动部署</li>
+    </ul>
+
+    <h2>反馈</h2>
+
+    <p>
+      内容错误、补充建议、想看的新策略 — 在 GitHub repo issues 提。
+    </p>
+  </article>
+</BaseLayout>
