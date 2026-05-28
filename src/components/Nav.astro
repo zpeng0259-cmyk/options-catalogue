@@ -1,0 +1,32 @@
+---
+const links = [
+  { href: '/', label: '首页' },
+  { href: '/csp', label: 'CSP' },
+  { href: '/bps', label: 'BPS' },
+  { href: '/cc', label: 'CC' },
+  { href: '/about', label: 'About' },
+];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const path = Astro.url.pathname.replace(new RegExp(`^${base}`), '').replace(/\/$/, '') || '/';
+---
+
+<nav class="border-b border-zinc-800 bg-zinc-900/95 backdrop-blur sticky top-0 z-10">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-6">
+    <a href={`${base}/`} class="font-bold text-amber-300">Options Catalogue</a>
+    <ul class="flex gap-4 text-sm">
+      {links.map(({ href, label }) => (
+        <li>
+          <a
+            href={`${base}${href}`}
+            class:list={[
+              'hover:text-amber-300 transition',
+              path === href ? 'text-amber-300' : 'text-zinc-300',
+            ]}
+          >
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</nav>

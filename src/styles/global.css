@@ -1,1 +1,31 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-profit: #34d399;
+  --color-loss: #f87171;
+  --color-accent: #fcd34d;
+  --font-sans: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-zinc-900 text-zinc-100;
+  }
+  h1, h2, h3, h4 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+/* Dark-mode prose tokens — applied wherever .prose-invert is used */
+.prose-invert {
+  --tw-prose-body: theme(colors.zinc.200);
+  --tw-prose-headings: theme(colors.zinc.50);
+  --tw-prose-links: theme(colors.amber.300);
+  --tw-prose-bold: theme(colors.zinc.50);
+  --tw-prose-code: theme(colors.amber.200);
+}

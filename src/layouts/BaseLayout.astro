@@ -1,0 +1,37 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Options strategies teaching catalogue' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title} | Options Catalogue</title>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Nav />
+    <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+      <slot />
+    </main>
+    <footer class="border-t border-zinc-800 py-6 text-center text-xs text-zinc-500">
+      仅供教学/复习用 · 不构成投资建议 · 真实交易请独立判断
+    </footer>
+  </body>
+</html>
