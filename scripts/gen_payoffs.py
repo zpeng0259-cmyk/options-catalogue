@@ -32,10 +32,13 @@ def style(ax, title, xlabel="Stock Price at Expiry", ylabel="P&L ($)"):
         spine.set_color(GRID)
     ax.tick_params(colors=TEXT, labelsize=9)
     ax.grid(True, color=GRID, linewidth=0.5, alpha=0.6)
-    ax.set_title(title, color=TEXT, fontsize=12, pad=10)
+    ax.set_title(title, color=TEXT, fontsize=12, pad=18)
     ax.set_xlabel(xlabel, color=TEXT, fontsize=10)
     ax.set_ylabel(ylabel, color=TEXT, fontsize=10)
     ax.axhline(0, color=NEUTRAL, linewidth=0.8)
+    # Add headroom above the curve so top annotations don't ride into the title.
+    y_lo, y_hi = ax.get_ylim()
+    ax.set_ylim(y_lo, y_hi + (y_hi - y_lo) * 0.22)
 
 
 def fill_pnl(ax, x, y):
@@ -80,7 +83,7 @@ def gen_csp():
     annotate(ax, K, P, f"Strike K=${K:.0f}\nMax profit +${P:.2f}")
     annotate(ax, K - P, 0, f"Breakeven\n${K - P:.2f}", dy=-22)
     annotate(ax, K * 0.75, P - (K - K * 0.75), f"Loss accelerates\nbelow K", dy=-22)
-    style(ax, "CSP — Cash-Secured Put 损益图（到期）")
+    style(ax, "CSP — Cash-Secured Put Payoff (at expiry)")
     save(fig, "csp")
 
 
