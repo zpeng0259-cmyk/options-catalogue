@@ -1,0 +1,128 @@
+---
+import StrategyLayout from '../layouts/StrategyLayout.astro';
+import ProsConsList from '../components/ProsConsList.astro';
+import ScenarioTable from '../components/ScenarioTable.astro';
+import PayoffSVG from '../components/PayoffSVG.astro';
+import ExampleCard from '../components/ExampleCard.astro';
+
+// Scenario math (BPS): sell put @ K_short=100, buy put @ K_long=95, net credit=1.5
+const Ks = 100;
+const Kl = 95;
+const credit = 1.5;
+const width = Ks - Kl;
+
+function shortLeg(S: number) {
+  return +(credit - Math.max(Ks - S, 0)).toFixed(2);
+}
+function longLeg(S: number) {
+  return +(Math.max(Kl - S, 0)).toFixed(2);
+}
+function net(S: number) {
+  return +(shortLeg(S) + longLeg(S)).toFixed(2);
+}
+function roc(pnl: number) {
+  return +(pnl / (width - credit) * 100).toFixed(2);
+}
+
+const midK = (Ks + Kl) / 2;
+const bpsRows = [
+  [`股价 -20% (${(Ks*0.8).toFixed(0)})`, shortLeg(Ks*0.8), longLeg(Ks*0.8), net(Ks*0.8), roc(net(Ks*0.8))],
+  [`股价 -10% (${(Ks*0.9).toFixed(0)})`, shortLeg(Ks*0.9), longLeg(Ks*0.9), net(Ks*0.9), roc(net(Ks*0.9))],
+  [`(K_short+K_long)/2 (${midK})`, shortLeg(midK), longLeg(midK), net(midK), roc(net(midK))],
+  [`= K_short (${Ks})`, shortLeg(Ks), longLeg(Ks), net(Ks), roc(net(Ks))],
+  [`股价 +10% (${(Ks*1.1).toFixed(0)})`, shortLeg(Ks*1.1), longLeg(Ks*1.1), net(Ks*1.1), roc(net(Ks*1.1))],
+  [`股价 +20% (${(Ks*1.2).toFixed(0)})`, shortLeg(Ks*1.2), longLeg(Ks*1.2), net(Ks*1.2), roc(net(Ks*1.2))],
+];
+
+const ivCrush = [
+  ['开仓后立刻 IV −30%（股价不变）', '+0.50', '+33%'],
+  ['Theta 1 天衰减（IV 不变）', '+0.05', '+3%'],
+  ['IV −30% + 时间 −5 DTE', '+0.78', '+52%'],
+];
+---
+
+<StrategyLayout
+  title="BPS"
+  shortName="BPS"
+  fullName="Bull Put Spread · 牛市看跌价差"
+  oneLiner="同时卖一张高 strike put + 买一张低 strike put，用更小的资金做 CSP 的"看涨"逻辑，并把最大亏损锁死。"
+>
+
+<h2>1. 机制 (How it works)</h2>
+
+<ul>
+  <li><strong>你做什么：</strong>Sell to Open put @ K_short（短腿，较高 strike） + Buy to Open put @ K_long（长腿，较低 strike）</li>
+  <li><strong>净 credit：</strong>premium(short) − premium(long) = 你净收的钱</li>
+  <li><strong>担保物：</strong>(K_short − K_long) × 100 − credit × 100（保证金）</li>
+  <li><strong>到期路径：</strong>
+    <ul>
+      <li>股价 &gt; K_short → 两腿都 worthless，留下全部 credit</li>
+      <li>K_long &lt; 股价 &lt; K_short → 短腿被 assign 部分，长腿不动，按净 P&L 结算</li>
+      <li>股价 &lt; K_long → 两腿都 ITM，盈亏 = credit − width，亏损固定</li>
+    </ul>
+  </li>
+  <li><strong>术语：</strong>"短/长"指 short / long position（卖出 / 买入），不是腿的长短。K_short 较高，K_long 较低。</li>
+  <li><strong>关键 Greeks：</strong>正 Theta、正 Delta、负 Vega（同 CSP 方向，但绝对值更小）</li>
+</ul>
+
+<h2>2. 适用场景 ✓ / 不适用场景 ✗</h2>
+
+<ProsConsList
+  pros={[
+    "看涨但想锁死下行风险",
+    "账户资金有限（保证金 << CSP 现金需求）",
+    "不愿意被 assign 股票",
+    "标的 IV 中等偏高，spread credit 至少 width 的 1/3",
+    "回测/统计上偏好高 win rate 策略",
+  ]}
+  cons={[
+    "标的横盘 + 低 IV（credit 太薄，max loss 不值得吃）",
+    "想完全无亏损（BPS 仍可能 max loss）",
+    "标的有跳空风险（gap down 直接打穿 K_long）",
+    "宽 spread + 高 credit 看似 ROC 漂亮 — 那是杠杆，不是 free lunch",
+  ]}
+/>
+
+<h2>3. 损益图</h2>
+
+<PayoffSVG strategy="bps" caption="示意参数：K_short=100, K_long=95, net credit=1.5。Max profit +1.50（股价≥100）；max loss -3.50（股价≤95）；breakeven 98.50。" />
+
+<h2>4. 极端场景 P&L 表（分腿）</h2>
+
+<p>假设 K_short=100, K_long=95, credit=1.5（per share）。ROC 基数 = max loss exposure = (width − credit) = 3.5。</p>
+
+<ScenarioTable
+  caption="到期 P&L — 注意 short / long leg 如何在 K_long 以下互相抵消"
+  columns={['股价场景', '短腿 P&L', '长腿 P&L', '净 P&L', 'ROC%']}
+  rows={bpsRows as any}
+  highlightNegativeCol={3}
+/>
+
+<ScenarioTable
+  caption="IV crush / Theta 场景（mark-to-market，股价不变）"
+  columns={['场景', 'P&L 估算', '占 max profit %']}
+  rows={ivCrush}
+/>
+
+<h2>5. 真实例子（部分脱敏）</h2>
+
+<ExampleCard
+  ticker="SPY"
+  date="2025-02"
+  setup="Sold 590P / Bought 585P, 45DTE, net credit 1.65 (width 5)"
+  background="SPY 在 600 附近，VIX 17，市场预期 Fed 维持 dovish。"
+  decision="选 590 在 50DMA 之上；width 5 控制 max loss；credit/width = 33% 满足策略门槛。"
+  outcome="持到 21DTE 时 net P&L = +1.20（73% max profit），关闭锁利。"
+  takeaway="BPS 不必到期 — 50% max profit 就是大多数 study 的最优退出点。"
+/>
+
+<h2>6. 常见误区</h2>
+
+<ul>
+  <li><strong>宽 spread 高 credit = 高杠杆：</strong>credit 1.5 on width 5 vs credit 0.30 on width 1，ROC% 看似一样，但前者 max loss 是后者的 5 倍。</li>
+  <li><strong>忽视 gap risk：</strong>到期日股价 96，看似只有 4 块亏损空间。次日 gap down 到 90，长腿没保护到——因为已经过期。</li>
+  <li><strong>K_long 离 K_short 太近：</strong>credit/width 比例好看，但 max profit 绝对值太小，commission 都吃不回来。</li>
+  <li><strong>错把 BPS 当 "low risk CSP"：</strong>风险确实定义，但 max loss 触发概率比 CSP 被 assign 还高（取决于 strike 选择）。</li>
+</ul>
+
+</StrategyLayout>
