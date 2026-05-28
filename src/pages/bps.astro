@@ -126,4 +126,34 @@ const ivCrush = [
   <li><strong>错把 BPS 当 "low risk CSP"：</strong>风险确实定义，但 max loss 触发概率比 CSP 被 assign 还高（取决于 strike 选择）。</li>
 </ul>
 
+<h2>7. 到期日处理（最关键，必读）</h2>
+
+<p>BPS 是三个策略中到期处理<strong>最复杂、最容易翻车</strong>的。<strong>强烈建议到期日下午 3:30 ET 前主动平仓</strong>（哪怕 0.05 关掉），不要赌 OCC 行为。原因如下，以 K_short=100 / K_long=85 为例：</p>
+
+<h3>A. 股价 &lt; K_long（如 80）— 两腿都 ITM</h3>
+<ul>
+  <li>short put 被 assign → 买入 100 股 @ 100（需 $10,000 现金）</li>
+  <li>long put 自动行权 → 卖出 100 股 @ 85（收 $8,500）</li>
+  <li>净亏损 = -$1,250 = max loss（与到期前预期一致）</li>
+  <li>OCC 同日撮合两腿，但 T+1/T+2 settlement 期间账户可能短暂看到大额借方</li>
+</ul>
+
+<h3>B. K_long &lt; 股价 &lt; K_short（如 92）— 只有 short ITM 🚨 危险</h3>
+<ul>
+  <li>short put 被 assign → 买入 100 股 @ 100（需 $10,000 现金）</li>
+  <li>long put OTM 归零 — <strong>完全没有保护</strong></li>
+  <li>周一开盘账户：+100 股股票 + 欠 $10,000</li>
+  <li>现金不够 → margin call，券商有权强制平仓任何头寸</li>
+  <li>周一 gap down 损失由你独自承担，可能远超 max loss</li>
+</ul>
+
+<h3>C. 周五 pin risk</h3>
+<ul>
+  <li>股价正好在 strike 附近（如 K_short=100 收盘 100.02）</li>
+  <li>盘后 4:00–5:30 ET 股价可能跌破，OCC 按 5:30 settlement 决定</li>
+  <li>short 可能被 assign 同时 long 仍 OTM 不行权 → 落入"B"的危险情境</li>
+</ul>
+
+<p><strong>底线：</strong>到期日下午主动平仓是 BPS 的 standard practice。"我看 K_long 还远，应该没事"是新手常见错觉，gap 风险不分远近。</p>
+
 </StrategyLayout>

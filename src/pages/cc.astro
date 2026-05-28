@@ -115,4 +115,24 @@ const ivCrush = [
   <li><strong>被 called away 后立刻同价买回：</strong>commission + tax 损耗。要么接受退出，要么 strike 留更高 buffer。</li>
 </ul>
 
+<h2>7. 到期日处理（不平仓会怎样）</h2>
+
+<p>到期日下午 5:30 ET，任何 ITM ≥ $0.01 的 call 会被 OCC 自动行权。你的 100 股<strong>被强制 called away</strong>，自动完成，不需要任何操作。</p>
+
+<ul>
+  <li><strong>OTM 到期（股价 &lt; K）：</strong>call 归零，premium 入袋，股票继续持有，无需操作。</li>
+  <li><strong>ITM 到期（股价 ≥ K）：</strong>100 股按 K 价被卖出，账户收到 K × 100 现金。
+    <ul>
+      <li>想退出持仓：让它发生</li>
+      <li>不想退出：到期日 3:30 ET 前 Buy to Close，或 roll 到下个月更高 strike</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>Pin risk：</strong>股价收盘正好在 strike 附近（如 K=420 收 420.05），盘后可能反转，OCC 按 5:30 settlement 决定。如果当晚收 419.80 但盘后涨到 420.30，你可能下周一才发现股票已经被 called away。<strong>边界价当天主动平仓</strong>。</p>
+
+<p><strong>🚨 Dividend / early assignment 风险：</strong>CC 卖在 ex-dividend 日前更容易被<strong>提前行权</strong>（不是到期日）— call buyer 会算"行权拿股票收分红"vs"持有 call 到期"哪个划算。如果 CC 是 ITM 且跨越 ex-div 日，前一天主动平仓避开 — 否则股票被夜里直接 called away，你拿不到分红。</p>
+
+<p><strong>税务影响：</strong>被 called away 等同卖出股票，触发 capital gain/loss。<strong>长期持有的低成本股票</strong>被 called away 可能产生大额 long-term capital gain 税单（美国 15-20%、新加坡 0%），规划 strike 时务必考虑。</p>
+
 </StrategyLayout>

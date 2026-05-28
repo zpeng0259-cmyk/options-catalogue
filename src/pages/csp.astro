@@ -110,4 +110,22 @@ const ivCrush = [
   <li><strong>财报前卖 CSP 享 high IV：</strong>directional risk 远超 IV crush 收益，新手别碰。</li>
 </ul>
 
+<h2>7. 到期日处理（不平仓会怎样）</h2>
+
+<p>到期日下午 5:30 ET，任何 ITM ≥ $0.01 的 put 会被 OCC 自动行权（"exercise by exception"）。你的 short put 被 assign 是<strong>自动发生</strong>的，不需要券商手动操作，也不是"扣钱"。</p>
+
+<ul>
+  <li><strong>OTM 到期（股价 &gt; K）：</strong>put 归零，premium 全部入袋，无需任何操作。</li>
+  <li><strong>ITM 到期（股价 ≤ K）：</strong>被强制以 K 接 100 股，现金担保（K × 100）变成股票。
+    <ul>
+      <li>想接货：让它发生，成本基础 = K − premium</li>
+      <li>不想接货：到期日下午 3:30 ET 前 Buy to Close 平仓</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>Pin risk：</strong>股价正好在 strike 附近（如 K=100 收盘 100.02），盘后 4:00–5:30 ET 期间股价可能跌破，OCC 按 5:30 settlement 价决定 assignment。你可能周一开盘突然多了 100 股股票却毫不知情。<strong>边界股价当天主动平仓</strong>，不要赌。</p>
+
+<p><strong>Margin / 现金检查：</strong>CSP 设计就是现金担保，账户必有 K × 100 现金，assignment 不会触发 margin call。但用 margin 当担保的 naked put 卖家在 ITM 时账户可能冻结甚至被强制平仓。</p>
+
 </StrategyLayout>
